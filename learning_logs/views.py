@@ -1,8 +1,8 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, get_object_or_404, redirect
 from .models import Topic, Entry
 from .forms import TopicForm, EntryForm
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseRedirect, Http404
+from django.http import Http404
 # Create your views here.
 
 def index(request):
@@ -26,35 +26,36 @@ def topic(request,topic_id):
 
 @login_required
 def new_topic(request):
-    if request.method != 'POST':
-        form = TopicForm() 
-        form = TopicForm(data = request.POST)
-    if form.is_valid():
-        new_topic = form.save(commit = False)
-        new_topic.owner = request.user
-        new_topic.save()
-        return redirect('learning_logs:topics')
-    
+    if request.method == 'POST':
+        form = TopicForm(request.POST)
+        if form.is_valid():
+            new_topic = form.save(commit=False)
+            new_topic.owner = request.user
+            new_topic.save()
+            return redirect('learning_logs:topics')
+    else:
+        form = TopicForm()
+
     context = {'form': form}
     return render(request, 'learning_logs/new_topic.html', context)
 
 @login_required
-def new_entry(request,topic_id):
-    topic = Topic.objects.get(id = topic_id)
+def new_entry(request, topic_id):
+    topic = get_object_or_404(Topic, id=topic_id)
 
-    if request.method != 'POST':
-        form = EntryForm()
-    else:
-        check_owner(request,topic)
-        form = EntryForm(data = request.POST)
+    if request.method == 'POST':
+        form = EntryForm(data=request.POST)
         if form.is_valid():
-            new_entry = form.save(commit = False)
+            new_entry = form.save(commit=False)
             new_entry.topic = topic
             new_entry.save()
-            return redirect('learning_logs:topic', topic_id = topic_id)
+            return redirect('learning_logs:topic', topic_id=topic_id)
+    else:
+        form = EntryForm()
 
     context = {'topic': topic, 'form': form}
     return render(request, 'learning_logs/new_entry.html', context)
+
 
 @login_required
 def edit_entry(request, entry_id):
