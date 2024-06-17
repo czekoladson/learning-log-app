@@ -1,0 +1,2 @@
+-Aplikacja pozwalająca na zapisywanie swoich postepów w nauce lub zapisywania różnych informacji
+-posiada system logowania użytkowników
